@@ -11,6 +11,7 @@ struct ContentView: View {
     @State var showNumberMenu = false
     @State var showAnimalMenu = false
     @State var showCarMenu = false
+    @State var showEmptyDataMenu = false
 
     var body: some View {
         VStack {
@@ -49,6 +50,18 @@ struct ContentView: View {
             .menuSheet($showCarMenu) {
                 CarMenuView()
             }
+            Spacer()
+            Button(action: {
+                self.showEmptyDataMenu = true
+            }, label: {
+                Image(systemName: "testtube.2")
+                    .imageScale(.large)
+                    .foregroundStyle(.tint)
+                Text("Empty data Button")
+            })
+            .menuSheet($showEmptyDataMenu,
+                       initialContent: { EmptyDataMenu1() },
+                       secondary: { EmptyDataMenu2() })
         }
         .padding(.vertical, 100)
     }
@@ -71,6 +84,7 @@ enum MenuEvent {
     case cat
     case dog
     case bird
+    case empty // triggers 2ndary menu without passing any data
     case none
 }
 
@@ -80,7 +94,7 @@ class MenuCoordinator: ObservableObject {
     var event: MenuEvent = .none
 
     // Used by the initial menu to pass values to the secondary menu.
-    func pass(event: MenuEvent) {
+    func pass(event: MenuEvent = .empty) {
         self.event = event
         secondaryTrigger = true
     }
@@ -294,6 +308,32 @@ struct CarMenuView: MenuView {
         }
     }
 }
+
+// MARK: - Empty Data menu\
+
+struct EmptyDataMenu1: MenuView {
+    @EnvironmentObject private var coordinator: MenuCoordinator
+    
+    var body: some View {
+        Button("Open 2ndary") {
+            coordinator.pass()
+        }
+    }
+}
+
+struct EmptyDataMenu2: MenuView {
+    @EnvironmentObject private var coordinator: MenuCoordinator
+    
+    var body: some View {
+        Button("Hi, I'm 2ndary") {
+            coordinator.complete()
+        }
+        Button("Cancel", role: .cancel) {
+            coordinator.complete()
+        }
+    }
+}
+
 
 #Preview {
     ContentView()
